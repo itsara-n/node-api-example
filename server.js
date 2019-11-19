@@ -1,10 +1,57 @@
 const express = require('express')
-const app = express()
+const bodyParser = require("body-parser");
 const mongoose = require('mongoose')
+const jwt = require("jwt-simple");
+const passport = require("passport");
+const ExtractJwt = require("passport-jwt").ExtractJwt;
+const JwtStrategy = require("passport-jwt").Strategy;
 
+const app = express();
+app.use(bodyParser.json());
+app.use(express.json())
+const SECRET_KEY = "ITSARA_N";
+const PORT = process.env.PORT || 8000
+const DB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/node-api-101'
 
-const dbURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/node-api-101'
-mongoose.connect(dbURI, { useNewUrlParser: true })
+/**
+ * JWT Authentication
+ */
+const jwtOptions = {
+  jwtFromRequest: ExtractJwt.fromHeader("authorization"),
+  secretOrKey: SECRET_KEY
+};
+const jwtAuth = new JwtStrategy(jwtOptions, (payload, done) => {
+  if (payload.sub === "Admin") {
+    done(null, true);
+  } else {
+    done(null, false);
+  }
+});
+passport.use(jwtAuth);
+const authMiddleware = passport.authenticate("jwt", { session: false });
+
+/**
+ * Login
+ * [POST]: /login
+ * Input username, password for generate JTW for access to another.
+ */
+app.post("/login", (req, res) => {
+  if (req.body.username === "Admin" && req.body.password === "1234") {
+    const payload = {
+      sub: req.body.username,
+      iat: new Date().getTime()
+    };
+    const myJWT = jwt.encode(payload, SECRET_KEY);
+    res.send(myJWT);
+  } else {
+    res.send("Wrong username and password");
+  }
+});
+
+/**
+ * Connect mongodb
+ */
+mongoose.connect(DB_URI, { useNewUrlParser: true })
 const Schema = mongoose.Schema
 const productSchema = new Schema({
   name: String,
@@ -15,43 +62,74 @@ const productSchema = new Schema({
 }, { timestamps: true, versionKey: false })
 Product = mongoose.model('Product', productSchema)
 
-
-app.use(express.json())
-
-app.get('/products', async (req, res) => {
+/**
+ * Get products list
+ * [GET]: /products
+ */
+app.get('/products', authMiddleware, async (req, res) => {
   const productList = await Product.find();
   res.json(productList);
 })
 
-app.get('/product/:id', async (req, res) => {
+/**
+ * Get product info by id
+ * [GET]: /product/:id
+ */
+app.get('/product/:id', authMiddleware, async (req, res) => {
   const { id } = req.params
   const productInfo = await Product.findById(id)
   res.json(productInfo);
 })
 
-app.post('/product', async (req, res) => {
-  const { body } = req  
+/**
+ * Create new product
+ * [POST]: /product
+ *   body: {
+ *     "name": String,
+ *     "desc": String,
+ *     "image": String,
+ *     "price": Number,
+ *     "status": Boolean
+ *   }
+ */
+app.post('/product', authMiddleware, async (req, res) => {
+  const { body } = req
   const newProduct = new Product(body);
   await newProduct.save();
   res.status(201).end();
 })
 
-app.put('/product/:id', async (req, res) => {
-  const { body, params } = req  
+/**
+ * Update product by id
+ * [PUT]: /product:id
+ *   body: {
+ *     "name": String,
+ *     "desc": String,
+ *     "image": String,
+ *     "price": Number,
+ *     "status": Boolean
+ *   }
+ */
+app.put('/product/:id', authMiddleware, async (req, res) => {
+  const { body, params } = req
   const { id } = params
   const product = await Product.findByIdAndUpdate(id, { $set: body })
   res.json(product);
 })
 
-app.delete('/product/:id', async (req, res) => {
+/**
+ * Delete product by id
+ * [DELETE]: /product/:id
+ */
+app.delete('/product/:id', authMiddleware, async (req, res) => {
   const { id } = req.params
-  console.log(id);
-  
   await Product.findOneAndDelete(id);
   res.status(204).end();
 })
 
-const PORT = process.env.PORT || 8000
+/**
+ * Start server
+ */
 app.listen(PORT, () => {
-  console.log(`Application is running on port ${PORT}`)
+  console.log(`Serer running on ${PORT}`)
 })
