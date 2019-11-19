@@ -1,0 +1,23 @@
+{
+  "name": "node-api-example",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/itsara-n/node-api-example.git"
+  },
+  "author": "Itsara Nulor",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/itsara-n/node-api-example/issues"
+  },
+  "homepage": "https://github.com/itsara-n/node-api-example#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "mongoose": "^5.7.11"
+  }
+}
