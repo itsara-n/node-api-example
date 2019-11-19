@@ -63,26 +63,26 @@ const productSchema = new Schema({
 Product = mongoose.model('Product', productSchema)
 
 /**
- * Get products list
+ * Get products list from public
  * [GET]: /products
  */
-app.get('/products', authMiddleware, async (req, res) => {
+app.get('/products', async (req, res) => {
   const productList = await Product.find();
   res.json(productList);
 })
 
 /**
- * Get product info by id
+ * Get product info by id from public
  * [GET]: /product/:id
  */
-app.get('/product/:id', authMiddleware, async (req, res) => {
+app.get('/product/:id', async (req, res) => {
   const { id } = req.params
   const productInfo = await Product.findById(id)
   res.json(productInfo);
 })
 
 /**
- * Create new product
+ * Create new product by admin
  * [POST]: /product
  *   body: {
  *     "name": String,
@@ -100,7 +100,7 @@ app.post('/product', authMiddleware, async (req, res) => {
 })
 
 /**
- * Update product by id
+ * Update product by id by admin
  * [PUT]: /product:id
  *   body: {
  *     "name": String,
@@ -118,7 +118,7 @@ app.put('/product/:id', authMiddleware, async (req, res) => {
 })
 
 /**
- * Delete product by id
+ * Delete product by id by admin
  * [DELETE]: /product/:id
  */
 app.delete('/product/:id', authMiddleware, async (req, res) => {
