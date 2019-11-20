@@ -123,7 +123,7 @@ app.put('/product/:id', authMiddleware, async (req, res) => {
  */
 app.delete('/product/:id', authMiddleware, async (req, res) => {
   const { id } = req.params
-  await Product.deleteOne(id);
+  await Product.deleteOne({ _id: new mongodb.ObjectID(id) })
   res.status(204).end();
 })
 
