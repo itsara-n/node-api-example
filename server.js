@@ -123,7 +123,7 @@ app.put('/product/:id', authMiddleware, async (req, res) => {
  */
 app.delete('/product/:id', authMiddleware, async (req, res) => {
   const { id } = req.params
-  await Product.findOneAndDelete(id);
+  await Product.deleteOne(id);
   res.status(204).end();
 })
 
